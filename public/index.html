@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Decisions · Mesh</title><link rel="stylesheet" href="/style.css"><script type="module" src="/app.js"></script></head>
+<body>
+<main>
+<header><span class="brand">MESH / LABS</span><span class="badge">SYSTEM ONE</span></header>
+<section class="intro"><p class="eyebrow">SMALL MODEL. CLEAR CHOICES.</p><h1>Read between<br>the lines.</h1><p>Give Laya some text and a question.<br>Explore a decision, not a generated answer.</p></section>
+<div class="workspace">
+<form id="form">
+<div class="connection"><label for="model">Decision model</label><div class="model-row"><select id="model" required aria-describedby="connection"><option value="">Connecting…</option></select><button type="button" id="refresh" class="secondary">Refresh</button></div><p id="connection" role="status">Looking for System One models…</p></div>
+<label for="state">01 / Text to read</label><textarea id="state" rows="5" required maxlength="24000">I was charged twice this month. Could you refund the extra payment?</textarea>
+<div class="question-row"><label for="question">02 / Question</label><select id="mode" aria-label="Answer type"><option value="noul">Yes / No</option><option value="choice">Choose a label</option></select></div>
+<input id="question" required maxlength="2000" value="Is this a billing issue?">
+<div id="choices-field" hidden><label for="choices">Choices · one label per line (2–16)</label><textarea id="choices" rows="3" maxlength="4000">billing
+technical support
+sales</textarea></div>
+<button id="run" type="submit" disabled>Run decision <span aria-hidden="true">↗</span></button>
+<p id="error" role="alert"></p>
+</form>
+<section class="results" aria-labelledby="result-heading" aria-busy="false"><p class="eyebrow">THE MODEL’S READ</p><h2 id="result-heading">A little clarity.</h2><p id="status" role="status">Your result will appear here.</p><div id="bars"></div><p class="disclaimer">Probabilities are model estimates, not calibrated guarantees. Use judgment before acting.</p><details id="raw-panel" hidden><summary>API response</summary><pre id="raw"></pre></details></section>
+</div>
+<footer>Runs through your configured Mesh endpoint. No analytics. No saved prompts.<br>Start with a locally served Laya model; remote routing depends on Mesh support.</footer>
+</main>
+</body></html>

@@ -1,0 +1,44 @@
+import { test, expect } from '@playwright/test';
+const models = {data:[{id:'laya',display_name:'Laya multilingual',capabilities:['system_one']},{id:'chat'},{id:'mesh',capabilities:['system_one']}]};
+test('yes/no, choices, loading, invalid input, errors and mobile', async ({page})=>{
+  await page.route('**/api/models',r=>r.fulfill({json:models}));
+  await page.route('**/api/decision',async r=>{
+    const body=r.request().postDataJSON();
+    expect(body.model).toBe('laya');
+    await new Promise(resolve=>setTimeout(resolve,150));
+    await r.fulfill({json:{answers:{decision:body.questions.decision.type === 'noul' ? {type:'noul',noul:.96} : {type:'choice',choice:'billing',probabilities:{billing:.96,'technical support':.03,sales:.01}}}}});
+  });
+  await page.goto('/');
+  await expect(page.locator('#model option')).toHaveCount(1);
+  await page.getByRole('button',{name:'Run decision'}).click();
+  await expect(page.locator('#run')).toBeDisabled();
+  await expect(page.locator('#result-heading')).toHaveText('Yes');
+  await expect(page.locator('#bars')).toContainText('96.0%');
+  await page.locator('#mode').selectOption('choice');
+  await page.locator('#choices').fill('one');
+  await page.locator('#run').click();
+  await expect(page.getByRole('alert')).toContainText('2–16');
+  await page.locator('#choices').fill('billing\ntechnical support\nsales');
+  await page.locator('#run').click();
+  await expect(page.locator('#result-heading')).toHaveText('billing');
+  await page.screenshot({path:'docs/decisions.png',fullPage:true});
+  await page.setViewportSize({width:390,height:844});
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.route('**/api/decision',r=>r.fulfill({status:502,json:{error:'Mesh is unavailable.'}}));
+  await page.locator('#run').click();
+  await expect(page.getByRole('alert')).toContainText('unavailable');
+  await expect(page.locator('#bars')).toBeEmpty();
+});
+test('missing models, retry and safe response text',async({page})=>{
+  await page.route('**/api/models',r=>r.fulfill({json:{data:[]}}));
+  await page.goto('/');
+  await expect(page.locator('#connection')).toContainText('No compatible models');
+  await expect(page.locator('#run')).toBeDisabled();
+  await page.route('**/api/models',r=>r.fulfill({json:models}));
+  await page.locator('#refresh').click();
+  await expect(page.locator('#run')).toBeEnabled();
+  await page.route('**/api/decision',r=>r.fulfill({json:{answers:{decision:{type:'choice',probabilities:{'<img src=x onerror=alert(1)>':1}}}}}));
+  await page.locator('#run').click();
+  await expect(page.locator('#result-heading')).toHaveText('<img src=x onerror=alert(1)>');
+  await expect(page.locator('.results img')).toHaveCount(0);
+});
